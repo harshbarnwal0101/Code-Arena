@@ -96,7 +96,7 @@ npm start
 
 
 ## Hosted Links
-[Add your deployed application links here when available]
+i am not able to deploy both frontend and backend 
 
 ## Contributing
 Feel free to open issues and pull requests for any improvements.
