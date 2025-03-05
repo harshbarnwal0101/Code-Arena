@@ -94,8 +94,6 @@ cd frontend
 npm start
 ```
 
-## Screenshots
-[Add your application screenshots here]
 
 ## Hosted Links
 [Add your deployed application links here when available]
