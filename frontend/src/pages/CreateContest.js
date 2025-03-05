@@ -31,27 +31,30 @@ function CreateContest() {
   }, [isAuthenticated, navigate]);
 
   const handleProblemSelect = (problem) => {
-    // Prevent form submission when adding problems
-    if (problem) {
-      if (formData.problems.some(p => 
-        p.contestId === problem.contestId && p.problemIndex === problem.index
-      )) {
-        setError('Problem already added');
-        return;
-      }
+    if (!problem) return;
 
-      setFormData(prev => ({
-        ...prev,
-        problems: [...prev.problems, {
-          contestId: problem.contestId,
-          problemIndex: problem.index,
-          name: problem.name,
-          rating: problem.rating,
-          tags: problem.tags
-        }]
-      }));
-      setError(''); // Clear any previous errors
+    // Check for duplicate problems
+    if (formData.problems.some(p => 
+      p.contestId === problem.contestId && p.problemIndex === problem.index
+    )) {
+      setError('Problem already added');
+      return;
     }
+
+    // Add the problem
+    setFormData(prev => ({
+      ...prev,
+      problems: [...prev.problems, {
+        contestId: problem.contestId,
+        problemIndex: problem.index,
+        name: problem.name,
+        rating: problem.rating,
+        tags: problem.tags
+      }]
+    }));
+
+    console.log('Problem added:', problem.name);
+    setError(''); // Clear any previous errors
   };
 
   const removeProblem = (index) => {
@@ -92,8 +95,10 @@ function CreateContest() {
     try {
       console.log('Creating contest with data:', formData);
       const contest = await contestService.createContest(formData);
+      console.log('Contest created successfully:', contest);
       navigate('/contests');
     } catch (error) {
+      console.error('Contest creation error:', error);
       setError(error.message || 'Failed to create contest');
       setLoading(false);
     }

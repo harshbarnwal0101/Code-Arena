@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { contestService } from '../services/contestService';
 
@@ -17,14 +16,14 @@ function Contests() {
 
   const fetchContests = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/contests?status=${filter}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setContests(response.data);
+      console.log('Fetching contests with filter:', filter);
+      const data = await contestService.getContests(filter);
+      console.log('Fetched contests:', data);
+      setContests(data);
+      setError('');
     } catch (error) {
+      console.error('Failed to load contests:', error);
       setError('Failed to load contests');
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -153,4 +152,4 @@ function Contests() {
   );
 }
 
-export default Contests; 
+export default Contests;

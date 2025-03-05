@@ -22,10 +22,8 @@ export const codeforcesService = {
   },
   async searchProblems(query = '', filters = {}) {
     try {
-      console.log('Making request to Codeforces API');
+      console.log('Making request to Codeforces API with:', { query, filters });
       const response = await axios.get(`${CODEFORCES_API_BASE}/problemset.problems`);
-      
-      console.log('Codeforces API response status:', response.data.status);
       
       if (response.data.status !== 'OK') {
         console.error('Codeforces API error:', response.data);
@@ -40,30 +38,32 @@ export const codeforcesService = {
         const searchQuery = query.toLowerCase();
         problems = problems.filter(problem =>
           problem.name.toLowerCase().includes(searchQuery) ||
-          problem.tags.some(tag => tag.toLowerCase().includes(searchQuery))
+          (problem.tags && problem.tags.some(tag => tag.toLowerCase().includes(searchQuery)))
         );
         console.log(`After query filter: ${problems.length} problems`);
       }
 
       if (filters.minRating) {
+        const minRating = parseInt(filters.minRating);
         problems = problems.filter(problem => 
-          problem.rating && problem.rating >= parseInt(filters.minRating)
+          problem.rating && problem.rating >= minRating
         );
-        console.log(`After minRating filter: ${problems.length} problems`);
+        console.log(`After minRating filter (${minRating}): ${problems.length} problems`);
       }
 
       if (filters.maxRating) {
+        const maxRating = parseInt(filters.maxRating);
         problems = problems.filter(problem => 
-          problem.rating && problem.rating <= parseInt(filters.maxRating)
+          problem.rating && problem.rating <= maxRating
         );
-        console.log(`After maxRating filter: ${problems.length} problems`);
+        console.log(`After maxRating filter (${maxRating}): ${problems.length} problems`);
       }
 
       if (filters.tags && filters.tags.length > 0) {
         problems = problems.filter(problem =>
-          filters.tags.every(tag => problem.tags.includes(tag))
+          problem.tags && filters.tags.every(tag => problem.tags.includes(tag))
         );
-        console.log(`After tags filter: ${problems.length} problems`);
+        console.log(`After tags filter (${filters.tags.join(',')}): ${problems.length} problems`);
       }
 
       // Format problems for frontend
@@ -72,8 +72,8 @@ export const codeforcesService = {
         index: problem.index,
         name: problem.name,
         rating: problem.rating || 0,
-        tags: problem.tags
-      }));
+        tags: problem.tags || []
+      })).slice(0, 50); // Limit to 50 results
 
       console.log(`Returning ${formattedProblems.length} problems`);
       return formattedProblems;

@@ -3,8 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function Register() {
-  const navigate = useNavigate();
-  const { register } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -13,25 +11,36 @@ function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
+      setError('Passwords do not match');
+      return;
     }
 
-    setLoading(true);
     try {
+      console.log('Attempting registration with:', {
+        username: formData.username,
+        email: formData.email
+      });
+      
+      setLoading(true);
       await register(
         formData.username,
         formData.email,
         formData.password
       );
-      navigate('/dashboard');
+      
+      console.log('Registration successful');
+      navigate('/login');
     } catch (error) {
-      setError(error.message);
+      console.error('Registration error:', error);
+      setError(error.message || 'Failed to register');
     } finally {
       setLoading(false);
     }
@@ -49,7 +58,7 @@ function Register() {
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -61,6 +70,7 @@ function Register() {
               onChange={(e) => setFormData({...formData, username: e.target.value})}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
+              disabled={loading}
             />
           </div>
 
@@ -74,6 +84,7 @@ function Register() {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
+              disabled={loading}
             />
           </div>
 
@@ -87,6 +98,7 @@ function Register() {
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
+              disabled={loading}
             />
           </div>
 
@@ -100,6 +112,7 @@ function Register() {
               onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
               className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
+              disabled={loading}
             />
           </div>
 
@@ -127,4 +140,4 @@ function Register() {
   );
 }
 
-export default Register; 
+export default Register;

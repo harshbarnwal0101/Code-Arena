@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -12,6 +13,7 @@ import contestRoutes from './routes/contestRoutes.js';
 import { updateContestStatuses } from './utils/contestUpdater.js';
 import { Server } from 'socket.io';
 import problemRoutes from './routes/problemRoutes.js';
+import morgan from 'morgan';
 
 const app = express();
 const httpServer = createServer(app);
@@ -24,26 +26,47 @@ const io = new Server(httpServer, {
 });
 
 // Middleware
-const corsOptions = {
+app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:3000",
   credentials: true
-};
-app.use(cors(corsOptions));
+}));
 app.use(express.json());
 
-// MongoDB Connection - using environment variable
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Connected to MongoDB successfully');
-  console.log('Database name:', mongoose.connection.name);
-  console.log('Host:', mongoose.connection.host);
-  console.log('Port:', mongoose.connection.port);
-}).catch((err) => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1); // Exit if cannot connect to database
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log('\n--------------------');
+  console.log('New request:', {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'authorization': req.headers['authorization'] ? 'Bearer [hidden]' : 'none'
+    }
+  });
+  
+  // Log response
+  const oldSend = res.send;
+  res.send = function(data) {
+    console.log('Response:', {
+      status: res.statusCode,
+      body: data
+    });
+    console.log('--------------------\n');
+    return oldSend.apply(res, arguments);
+  };
+  
+  next();
 });
+
+// Logging middleware
+app.use(morgan('dev'));
+
+// MongoDB Connection
+import connectDB from './config/db.js';
+connectDB()
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Add connection event listeners
 mongoose.connection.on('connected', () => {

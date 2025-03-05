@@ -3,52 +3,44 @@ import axios from 'axios';
 import { codeforcesService } from '../services/codeforcesService';
 
 const AuthContext = createContext(null);
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+// Hardcode the API URL for local development
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:50000/api';
+
+// Log the API URL being used
+console.log('Using API URL:', API_URL);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cfProfile, setCfProfile] = useState(null);
   const [cfStats, setCfStats] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log('Checking auth with token:', token); // Debug log
-
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-
-        const response = await axios.get(`${API_URL}/auth/verify`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (response.data.user) {
+    const verifyToken = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          console.log('Verifying token...');
+          const response = await axios.get(`${API_URL}/auth/verify`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('Token verification response:', response.data);
           setUser(response.data.user);
           setIsAuthenticated(true);
-          // Re-store token to refresh its presence in localStorage
-          localStorage.setItem('token', token);
-        } else {
+        } catch (error) {
+          console.error('Token verification failed:', error);
           localStorage.removeItem('token');
           setUser(null);
           setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('token');
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
-    checkAuthStatus();
+    verifyToken();
   }, []);
 
   useEffect(() => {
@@ -56,6 +48,28 @@ export const AuthProvider = ({ children }) => {
       fetchCodeforcesData(user.codeforcesId);
     }
   }, [user?.codeforcesId]);
+
+  const login = async (email, password) => {
+    try {
+      console.log('Attempting login with email:', email);
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password
+      });
+      
+      console.log('Login response:', response.data);
+      const { token, user } = response.data;
+      
+      localStorage.setItem('token', token);
+      setUser(user);
+      setIsAuthenticated(true);
+      
+      return user.codeforcesId ? '/dashboard' : '/link-codeforces';
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to login');
+    }
+  };
 
   const register = async (username, email, password) => {
     try {
@@ -66,32 +80,15 @@ export const AuthProvider = ({ children }) => {
         password
       });
       
+      console.log('Registration response:', response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
       setIsAuthenticated(true);
       return true;
     } catch (error) {
-      console.error('Registration error:', error.response?.data);
+      console.error('Registration error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Registration failed');
-    }
-  };
-
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password
-      });
-
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      console.log('Token stored after login:', token); // Debug log
-      setUser(user);
-      setIsAuthenticated(true);
-      return '/dashboard';
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Login failed');
     }
   };
 
@@ -171,27 +168,27 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setIsAuthenticated(false);
     setCfProfile(null);
     setCfStats(null);
-    setIsAuthenticated(false);
   };
 
   const value = {
     user,
     cfProfile,
     cfStats,
+    isAuthenticated,
     loading,
     error,
-    register,
     login,
+    register,
     logout,
-    linkCodeforces,
-    isAuthenticated
+    linkCodeforces
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
@@ -202,4 +199,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

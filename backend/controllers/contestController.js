@@ -6,26 +6,37 @@ import { submissionMonitor } from '../services/submissionMonitor.js';
 // Create a new contest
 const createContest = async (req, res) => {
   try {
+    console.log('Creating contest with data:', req.body);
     const { title, startTime, duration, isPrivate, accessCode, problems } = req.body;
 
-    // Verify all problems exist on Codeforces
-    const verifiedProblems = await Promise.all(
-      problems.map(async (problem) => {
-        try {
-          const problemInfo = await codeforcesService.getProblemInfo(
-            problem.contestId,
-            problem.problemIndex
-          );
-          return {
-            ...problemInfo,
-            points: problem.points || calculatePoints(problemInfo.rating)
-          };
-        } catch (error) {
-          throw new Error(`Failed to verify problem ${problem.contestId}${problem.problemIndex}`);
-        }
-      })
-    );
+    if (!problems || problems.length === 0) {
+      return res.status(400).json({ message: 'At least one problem is required' });
+    }
 
+    // Verify all problems exist on Codeforces
+    const verifiedProblems = [];
+    for (const problem of problems) {
+      try {
+        console.log('Verifying problem:', problem);
+        const problemInfo = await codeforcesService.getProblemInfo(
+          problem.contestId,
+          problem.problemIndex
+        );
+        verifiedProblems.push({
+          ...problemInfo,
+          points: problem.points || calculatePoints(problemInfo.rating)
+        });
+        console.log('Problem verified:', problemInfo.name);
+      } catch (error) {
+        console.error('Problem verification failed:', error);
+        return res.status(400).json({ 
+          message: `Failed to verify problem ${problem.contestId}${problem.problemIndex}`,
+          error: error.message
+        });
+      }
+    }
+
+    console.log('All problems verified, creating contest');
     const contest = await Contest.create({
       title,
       startTime,
@@ -36,6 +47,7 @@ const createContest = async (req, res) => {
       creator: req.user._id
     });
 
+    console.log('Contest created successfully:', contest._id);
     res.status(201).json(contest);
   } catch (error) {
     console.error('Create contest error:', error);
@@ -52,8 +64,33 @@ const calculatePoints = (rating) => {
 // Get all contests (with filters)
 const getContests = async (req, res) => {
   try {
+    console.log('Getting contests with query:', req.query);
     const { status } = req.query;
     let query = {};
+
+    // Update contest statuses based on current time
+    const now = new Date();
+    
+    // Find contests that should be marked as ongoing
+    await Contest.updateMany({
+      status: 'upcoming',
+      startTime: { $lte: now }
+    }, {
+      status: 'ongoing'
+    });
+
+    // Find contests that should be marked as completed
+    await Contest.updateMany({
+      status: 'ongoing',
+      $expr: {
+        $lte: [
+          { $add: ['$startTime', { $multiply: ['$duration', 60000] }] },
+          now
+        ]
+      }
+    }, {
+      status: 'completed'
+    });
     
     // Only filter by status if explicitly provided
     if (status && status !== 'all') {
@@ -67,17 +104,20 @@ const getContests = async (req, res) => {
     query = {
       $or: [
         { creator: req.user._id },
-        { participants: { $elemMatch: { user: req.user._id } } },
+        { 'participants.user': req.user._id },
         { isPrivate: false }
       ],
       ...query
     };
+
+    console.log('Final query:', JSON.stringify(query, null, 2));
 
     const contests = await Contest.find(query)
       .populate('creator', 'username')
       .populate('participants.user', 'username')
       .sort({ startTime: -1 }); // Show newest contests first
 
+    console.log('Found contests:', contests.length);
     res.json(contests);
   } catch (error) {
     console.error('Get contests error:', error);

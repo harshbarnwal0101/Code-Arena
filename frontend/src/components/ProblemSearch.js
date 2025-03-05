@@ -32,22 +32,22 @@ function ProblemSearch({ onProblemSelect, existingProblems = [] }) {
     setLoading(true);
     setError('');
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Please log in to search problems');
-      setLoading(false);
-      return;
-    }
-
     try {
+      console.log('Searching with query:', query);
+      console.log('Filters:', filters);
+      
       const results = await contestService.searchProblems(query, filters);
+      console.log('Search results:', results);
+      
       const filteredResults = results.filter(problem => 
         !existingProblems.some(p => 
           p.contestId === problem.contestId && p.problemIndex === problem.index
         )
       );
+      
       setProblems(filteredResults);
     } catch (error) {
+      console.error('Search error:', error);
       setError(error.message || 'Failed to search problems');
     } finally {
       setLoading(false);
