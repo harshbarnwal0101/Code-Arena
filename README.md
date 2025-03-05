@@ -1,70 +1,107 @@
-# Getting Started with Create React App
+# Competitive Arena
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A competitive programming platform that allows users to participate in coding contests, solve problems, and improve their programming skills.
 
-## Available Scripts
+## Features Implemented
 
-In the project directory, you can run:
+### User Management
+- User registration and authentication system
+- JWT-based secure login system
+- User profile management
+- Rating system for users
 
-### `npm start`
+### Contest Features
+- Real-time contest participation
+- Contest status updates
+- Problem solving capabilities
+- Contest leaderboard system
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Technical Features
+- Secure password hashing using bcrypt
+- Real-time updates using Socket.IO
+- Protected API routes with JWT authentication
+- MongoDB integration for data persistence
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Technologies Used
 
-### `npm test`
+### Frontend
+- React.js
+- Socket.IO Client
+- Material-UI/Tailwind CSS (for styling)
+- Redux (for state management)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Backend
+- Node.js
+- Express.js
+- MongoDB (Database)
+- Socket.IO (Real-time communication)
+- JWT (Authentication)
+- Bcrypt (Password hashing)
 
-### `npm run build`
+## API Endpoints
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Authentication Routes
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/user/profile` - Get user profile (Protected)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Contest Routes
+- `GET /api/contests` - Get all contests
+- `POST /api/contests` - Create new contest
+- `GET /api/contests/:id` - Get specific contest
+- `PUT /api/contests/:id` - Update contest
+- `DELETE /api/contests/:id` - Delete contest
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Problem Routes
+- `GET /api/problems` - Get all problems
+- `POST /api/problems` - Create new problem
+- `GET /api/problems/:id` - Get specific problem
 
-### `npm run eject`
+## Getting Started
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/competitive-arena.git
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Install dependencies
+```bash
+# Backend
+cd backend
+npm install
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Frontend
+cd frontend
+npm install
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. Set up environment variables
+Create a `.env` file in the backend directory with:
+```
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+PORT=5000
+```
 
-## Learn More
+4. Run the application
+```bash
+# Backend
+cd backend
+npm start
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Frontend
+cd frontend
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Screenshots
+[Add your application screenshots here]
 
-### Code Splitting
+## Hosted Links
+[Add your deployed application links here when available]
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Contributing
+Feel free to open issues and pull requests for any improvements.
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
